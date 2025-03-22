@@ -9,7 +9,7 @@ from transformers import TrainingArguments
 from datasets import DatasetDict, concatenate_datasets
 import optuna
 import cpuinfo
-import igpu
+#import igpu
 
 from ..trainers import TrainerForRelationExtraction, TrainerForTokenClassification
 from ..data_collator import KinfoextDataCollator
@@ -240,9 +240,9 @@ def k_fold_cross_validation(
                 f"{experiment_directory}/{str(i)}/finetuning/info/cpu_info.json", "w"
             ) as outfile:
                 json.dump(cpu_info, outfile, indent=4)
-            devices = igpu.devices_index()
+            #devices = igpu.devices_index()
             gpu_info = {
-                device: convert_to_dict(igpu.get_device(device)) for device in devices
+                #device: convert_to_dict(igpu.get_device(device)) for device in devices
             }
             with open(
                 f"{experiment_directory}/{str(i)}/finetuning/info/gpu_info.json", "w"

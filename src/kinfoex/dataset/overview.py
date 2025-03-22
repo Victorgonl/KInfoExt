@@ -5,7 +5,7 @@ NULL_RELATION_ID = 0
 NULL_TOKEN_ID = 0
 
 
-def get_kinfoext_overview(kinfoext_dataset):
+def get_kinfoext_dataset_overview(kinfoext_dataset):
     overview = {
         "samples": {"total": 0},
         "words": {"total": 0, "total_entities": 0},
@@ -49,7 +49,7 @@ def get_kinfoext_overview(kinfoext_dataset):
     return overview
 
 
-def get_processed_kinfoext_overview(kinfoext_dataset):
+def get_processed_kinfoext_dataset_overview(kinfoext_dataset):
     overview = {
         "samples": {"total": 0},
         "tokens": {"total": 0},
