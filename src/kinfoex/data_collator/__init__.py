@@ -1,1 +1,1 @@
-from .data_collator import UFLAFORMSDataCollator
+from .data_collator import KinfoextDataCollator

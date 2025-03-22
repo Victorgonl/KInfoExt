@@ -8,7 +8,7 @@ except ImportError:
     c_make_encoder = None
 
 
-class UFLAFORMSJSONEncoder(json.JSONEncoder):
+class KinfoextJSONEncoder(json.JSONEncoder):
     """Custom JSON Encoder from https://gist.github.com/Andrej730/38febfb059e12f3e67fe72703414ccf9."""
 
     def iterencode(self, o, _one_shot=False):

@@ -5,7 +5,7 @@ import torch
 
 
 @dataclass
-class UFLAFORMSDataCollator:
+class KinfoextDataCollator:
 
     pad_token_label = -100
     valid_keys = [

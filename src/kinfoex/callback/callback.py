@@ -18,7 +18,7 @@ def print_feedback(message: str) -> None:
     print()
 
 
-class UFLAFORMSCallback(TrainerCallback):
+class KinfoextCallback(TrainerCallback):
 
     def __init__(
         self,

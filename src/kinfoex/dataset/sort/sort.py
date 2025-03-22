@@ -1,7 +1,7 @@
 import os
 import json
 
-from .json_encoder import UFLAFORMSJSONEncoder
+from .json_encoder import KinfoextJSONEncoder
 from .sort_functions import *
 
 
@@ -19,28 +19,28 @@ def load_samples_data(data_folder):
 def save_samples_data(data_folder, samples_data):
     for sample_id in samples_data:
         with open(f"{data_folder}/{sample_id}.json", "w") as f:
-            json.dump(samples_data[sample_id], f, cls=UFLAFORMSJSONEncoder, indent=4)
+            json.dump(samples_data[sample_id], f, cls=KinfoextJSONEncoder, indent=4)
 
 
-def sort_uflaforms_dataset(uflaforms_dataset_directory, sort_by_relations=False):
+def sort_kinfoext_dataset(kinfoext_dataset_directory, sort_by_relations=False):
 
     data_folder = "data"
 
-    print("Sorting UFLA-FORMS dataset...")
+    print("Sorting KInfoExt dataset...")
 
     samples_data = load_samples_data(
-        data_folder=f"{uflaforms_dataset_directory}/{data_folder}"
+        data_folder=f"{kinfoext_dataset_directory}/{data_folder}"
     )
     samples_data = sort_samples_data(
         samples_data=samples_data, sort_by_relations=sort_by_relations
     )
     save_samples_data(
-        data_folder=f"{uflaforms_dataset_directory}/{data_folder}",
+        data_folder=f"{kinfoext_dataset_directory}/{data_folder}",
         samples_data=samples_data,
     )
 
     print()
     print("========================")
-    print("|| UFLA-FORMS sorted! ||")
+    print("|| KInfoExt sorted! ||")
     print("========================")
     print()

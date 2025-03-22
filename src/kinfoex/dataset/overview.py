@@ -5,16 +5,16 @@ NULL_RELATION_ID = 0
 NULL_TOKEN_ID = 0
 
 
-def get_uflaforms_overview(uflaforms_dataset):
+def get_kinfoext_overview(kinfoext_dataset):
     overview = {
         "samples": {"total": 0},
         "words": {"total": 0, "total_entities": 0},
         "entities": {"total": 0, "total_entities": 0},
         "relations": {"total": 0},
     }
-    for sample_id in uflaforms_dataset:
-        data = uflaforms_dataset[sample_id]["data"]
-        labels = uflaforms_dataset[sample_id]["labels"]
+    for sample_id in kinfoext_dataset:
+        data = kinfoext_dataset[sample_id]["data"]
+        labels = kinfoext_dataset[sample_id]["labels"]
         overview["samples"]["total"] += 1
         for entity_id in data:
             entity = data[entity_id]
@@ -49,7 +49,7 @@ def get_uflaforms_overview(uflaforms_dataset):
     return overview
 
 
-def get_processed_uflaforms_overview(uflaforms_dataset):
+def get_processed_kinfoext_overview(kinfoext_dataset):
     overview = {
         "samples": {"total": 0},
         "tokens": {"total": 0},
@@ -57,27 +57,27 @@ def get_processed_uflaforms_overview(uflaforms_dataset):
         "entities": {"total": 0},
         "relations": {"total": 0},
     }
-    uflaforms_dataset = concatenate_datasets(
-        [uflaforms_dataset[partition] for partition in uflaforms_dataset]
+    kinfoext_dataset = concatenate_datasets(
+        [kinfoext_dataset[partition] for partition in kinfoext_dataset]
     )
     tokens_id2label = {
         i: label
-        for i, label in enumerate(uflaforms_dataset.features["labels"].feature.names)
+        for i, label in enumerate(kinfoext_dataset.features["labels"].feature.names)
     }
     entities_id2label = {
         i: label
         for i, label in enumerate(
-            uflaforms_dataset.features["entities"].feature["label"].names
+            kinfoext_dataset.features["entities"].feature["label"].names
         )
     }
     relations_id2label = {
         i: label
         for i, label in enumerate(
-            uflaforms_dataset.features["relations"].feature["label"].names
+            kinfoext_dataset.features["relations"].feature["label"].names
         )
     }
 
-    for sample in uflaforms_dataset:
+    for sample in kinfoext_dataset:
 
         overview["samples"]["total"] += 1
 

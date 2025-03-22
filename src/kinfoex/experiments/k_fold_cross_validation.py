@@ -12,8 +12,8 @@ import cpuinfo
 import igpu
 
 from ..trainers import TrainerForRelationExtraction, TrainerForTokenClassification
-from ..data_collator import UFLAFORMSDataCollator
-from ..callback import UFLAFORMSCallback
+from ..data_collator import KinfoextDataCollator
+from ..callback import KinfoextCallback
 
 
 def set_seed(seed):
@@ -70,7 +70,7 @@ def k_fold_cross_validation(
     max_trials,
     compute_objective,
     direction,
-    data_collator=UFLAFORMSDataCollator(),
+    data_collator=KinfoextDataCollator(),
     callbacks=None,
     experiment_directory=None,
     pruner=None,
@@ -123,7 +123,7 @@ def k_fold_cross_validation(
             )
 
             cbks = [
-                UFLAFORMSCallback(
+                KinfoextCallback(
                     experiment_name=experiment_name,
                     experiment_directory=experiment_directory,
                     i_iteration=i,
@@ -280,7 +280,7 @@ def k_fold_cross_validation(
                 json.dump(args.to_dict(), f, indent=4)
 
             cbks = [
-                UFLAFORMSCallback(
+                KinfoextCallback(
                     experiment_name=experiment_name,
                     experiment_directory=experiment_directory,
                     status="Training with best hyper-parameters set found...",

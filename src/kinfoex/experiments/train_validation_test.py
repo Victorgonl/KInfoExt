@@ -11,8 +11,8 @@ import cpuinfo
 import igpu
 
 from ..trainers import TrainerForRelationExtraction, TrainerForTokenClassification
-from ..data_collator import UFLAFORMSDataCollator
-from ..callback import UFLAFORMSCallback
+from ..data_collator import KinfoextDataCollator
+from ..callback import KinfoextCallback
 
 
 def set_seed(seed):
@@ -70,7 +70,7 @@ def train_validation_test(
     max_trials=0,
     compute_objective=None,
     direction=None,
-    data_collator=UFLAFORMSDataCollator(),
+    data_collator=KinfoextDataCollator(),
     validation_dataset=None,
     callbacks=None,
     experiment_directory=None,
@@ -103,7 +103,7 @@ def train_validation_test(
         hp_search_args.save_strategy = "no"
 
         cbks = [
-            UFLAFORMSCallback(
+            KinfoextCallback(
                 experiment_name=experiment_name,
                 experiment_directory=experiment_directory,
                 max_trials=max_trials,
@@ -238,7 +238,7 @@ def train_validation_test(
             json.dump(args.to_dict(), f, indent=4)
 
         cbks = [
-            UFLAFORMSCallback(
+            KinfoextCallback(
                 experiment_name=experiment_name,
                 experiment_directory=experiment_directory,
                 status="Training with best hyper-parameters set found...",
