@@ -1,0 +1,15 @@
+# Micromamba environment file
+# https://marketplace.visualstudio.com/items?itemName=corker.vscode-micromamba
+
+name: kinfoex
+
+channels:
+  - conda-forge
+
+dependencies:
+  - python
+  - pytorch
+  - detectron2
+  - screen
+  - pip:
+    - -r requirements.txt

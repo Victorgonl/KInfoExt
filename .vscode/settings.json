@@ -1,0 +1,16 @@
+{
+    "python.defaultInterpreterPath": "./.micromamba/envs/kinfoex/bin/python",
+    "jupyter.notebookFileRoot": "${workspaceFolder}",
+    "[python]": {
+        "editor.formatOnSaveMode": "file",
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "ms-python.black-formatter"
+    },
+    "notebook.formatOnSave.enabled": false,
+    "notebook.formatOnCellExecution": false,
+    "python.analysis.typeCheckingMode": "basic",
+    "notebook.output.textLineLimit": 50,
+    "terminal.integrated.env.linux": {
+        "PYTHONPATH": "${workspaceFolder}",
+      },
+}

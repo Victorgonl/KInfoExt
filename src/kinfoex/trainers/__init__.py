@@ -1,0 +1,2 @@
+from .trainer_re import TrainerForRelationExtraction
+from .trainer_tc import TrainerForTokenClassification

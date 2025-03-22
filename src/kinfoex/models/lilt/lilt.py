@@ -1,0 +1,2 @@
+from transformers import LiltForTokenClassification as LiLTForTokenClassification
+from .lilt_re import LiLTForRelationExtraction

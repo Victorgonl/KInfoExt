@@ -1,0 +1,1 @@
+from .re_decoder import RelationExtractionOutput, RelationExtractionDecoder
