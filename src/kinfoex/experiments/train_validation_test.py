@@ -88,6 +88,8 @@ def train_validation_test(
 
     if experiment_directory is not None:
         experiment_directory = f"{experiment_directory}/{experiment_name}"
+    else:
+        experiment_directory = experiment_name
 
     if callbacks is None:
         callbacks = []
