@@ -3,7 +3,7 @@ from typing import Union
 
 import numpy
 
-from .seqeval.seqeval import Seqeval
+from .seqeval import Seqeval
 from .metric import ComputeMetrics
 
 

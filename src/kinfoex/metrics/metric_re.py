@@ -1,6 +1,6 @@
 from typing import Literal
 
-from .re_score.re_score import re_score, ALL
+from .re_score import re_score, ALL
 from .metric import ComputeMetrics
 
 
