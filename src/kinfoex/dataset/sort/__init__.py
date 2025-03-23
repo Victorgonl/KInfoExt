@@ -40,7 +40,7 @@ def sort_kinfoext_dataset(kinfoext_dataset_directory, sort_by_relations=False):
     )
 
     print()
-    print("========================")
-    print("|| KInfoExt sorted! ||")
-    print("========================")
+    print("==============================")
+    print("|| KInfoExt dataset sorted! ||")
+    print("==============================")
     print()
