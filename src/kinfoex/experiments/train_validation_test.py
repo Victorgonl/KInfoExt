@@ -8,7 +8,8 @@ from transformers import TrainingArguments
 from datasets import concatenate_datasets
 import optuna
 import cpuinfo
-#import igpu
+
+# import igpu
 
 from ..trainers import TrainerForRelationExtraction, TrainerForTokenClassification
 from ..data_collator import KinfoextDataCollator
@@ -111,16 +112,6 @@ def train_validation_test(
             )
         ] + callbacks
 
-        hp_search_trainer = Trainer(
-            model_init=model_init,
-            train_dataset=train_dataset,
-            eval_dataset=validation_dataset,
-            args=hp_search_args,
-            compute_metrics=compute_metrics,
-            data_collator=data_collator,
-            callbacks=cbks,  # type: ignore
-        )
-
         storage = optuna.storages.JournalStorage(
             optuna.storages.JournalFileStorage(
                 f"{experiment_directory}/hp_search/optuna_logs.log"
@@ -145,6 +136,16 @@ def train_validation_test(
             n_trials = max_trials
 
         if n_trials > 0 and validation_dataset is not None:
+
+            hp_search_trainer = Trainer(
+                model_init=model_init,
+                train_dataset=train_dataset,
+                eval_dataset=validation_dataset,
+                args=hp_search_args,
+                compute_metrics=compute_metrics,
+                data_collator=data_collator,
+                callbacks=cbks,  # type: ignore
+            )
 
             hp_search_results = hp_search_trainer.hyperparameter_search(
                 hp_space=hp_space,
@@ -202,9 +203,9 @@ def train_validation_test(
             f"{experiment_directory}/finetuning/info/cpu_info.json", "w"
         ) as outfile:
             json.dump(cpu_info, outfile, indent=4)
-        #devices = igpu.devices_index()
+        # devices = igpu.devices_index()
         gpu_info = {
-            #device: convert_to_dict(igpu.get_device(device)) for device in devices
+            # device: convert_to_dict(igpu.get_device(device)) for device in devices
         }
         with open(
             f"{experiment_directory}/finetuning/info/gpu_info.json", "w"
