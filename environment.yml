@@ -8,8 +8,5 @@ channels:
 
 dependencies:
   - python
-  - pytorch
-  - detectron2
-  - screen
   - pip:
     - -r requirements.txt
