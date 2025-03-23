@@ -114,6 +114,9 @@ def train_validation_test(
             )
         ] + callbacks
 
+        if not os.path.exists(f"{experiment_directory}/hp_search/optuna_logs.log"):
+            open(f"{experiment_directory}/hp_search/optuna_logs.log", "w")
+
         storage = optuna.storages.JournalStorage(
             optuna.storages.JournalFileStorage(
                 f"{experiment_directory}/hp_search/optuna_logs.log"
