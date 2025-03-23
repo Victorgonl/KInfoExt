@@ -5,12 +5,12 @@ from typing import Any, List, Mapping, Optional
 from transformers import PretrainedConfig, PreTrainedTokenizer, TensorType
 
 from transformers.utils import logging
-from transformers import RobertaConfig, XLMRobertaConfig
+from transformers import PretrainedConfig
 
 logger = logging.get_logger(__name__)
 
 
-class GMLLMConfig(RobertaConfig):
+class GMLLMConfig(PretrainedConfig):
     model_type = "gmllm"
 
     def __init__(
@@ -41,7 +41,7 @@ class GMLLMConfig(RobertaConfig):
 
 
 # TODO: This class cannot be called yet
-class GMLLMXLMConfig(XLMRobertaConfig):
+class GMLLMXLMConfig(PretrainedConfig):
     model_type = "gmllm"
 
     def __init__(
