@@ -1,5 +1,6 @@
 datasets==3.4.1
 evaluate==0.4.3
+ipykernel
 numpy==2.2.4
 optuna==4.2.1
 packaging==24.2

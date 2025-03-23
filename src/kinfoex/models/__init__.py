@@ -2,3 +2,4 @@ from .layoutxlm import LayoutXLMForTokenClassification, LayoutXLMForRelationExtr
 from .lilt import LiLTForTokenClassification, LiLTForRelationExtraction
 from .biaffine_attention.biaffine_attention import BiaffineAttention
 from .re_decoder import RelationExtractionDecoder, RelationExtractionOutput
+from .gmllm import GMLLMForTokenClassification, GMLLMForRelationExtraction

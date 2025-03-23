@@ -22,5 +22,6 @@ setup(
         "py-cpuinfo==9.0.0",
         "torch==2.6.0",
         "transformers==4.50.0",
+        "seqeval==1.2.2",
     ],
 )
