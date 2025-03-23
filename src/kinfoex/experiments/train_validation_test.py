@@ -16,11 +16,6 @@ from ..data_collator import KinfoextDataCollator
 from ..callback import KinfoextCallback
 
 
-def ensure_directory_exists(directory):
-    """Ensures that a directory exists, creating it if necessary."""
-    os.makedirs(directory, exist_ok=True)
-
-
 def set_seed(seed):
     import random
     import numpy
@@ -35,15 +30,32 @@ def set_seed(seed):
 
 
 def convert_to_dict(obj):
-    """Tries to convert an object to a dictionary."""
+    """
+    Tries to convert an object to a dictionary.
+
+    Parameters:
+        obj: The object to be converted.
+
+    Returns:
+        A dictionary representation of the object.
+    """
+    # If object is already a dictionary, return it as is
     if isinstance(obj, dict):
         return obj
+
+    # If object is a list or tuple, convert each element to dictionary recursively
     if isinstance(obj, (list, tuple)):
         return [convert_to_dict(item) for item in obj]
+
+    # If object is an object of a class, convert its attributes to dictionary
     if hasattr(obj, "__dict__"):
         return {key: convert_to_dict(value) for key, value in obj.__dict__.items()}
+
+    # If object is a set, convert it to a list and then to dictionary
     if isinstance(obj, set):
         return convert_to_dict(list(obj))
+
+    # For other types of objects, return the string representation
     return str(obj)
 
 
@@ -67,32 +79,30 @@ def train_validation_test(
     join_validation_on_train_after=True,
     save_model=False,
 ):
-    assert task in {"token_classification", "relation_extraction"}
-    Trainer = (
-        TrainerForTokenClassification
-        if task == "token_classification"
-        else TrainerForRelationExtraction
-    )
 
-    experiment_directory = os.path.join(experiment_directory or "", experiment_name)
-    ensure_directory_exists(experiment_directory)
+    assert task == "token_classification" or task == "relation_extraction"
+    if task == "token_classification":
+        Trainer = TrainerForTokenClassification
+    elif task == "relation_extraction":
+        Trainer = TrainerForRelationExtraction
+
+    if experiment_directory is not None:
+        experiment_directory = f"{experiment_directory}/{experiment_name}"
+    else:
+        experiment_directory = experiment_name
 
     if callbacks is None:
         callbacks = []
 
     args_original = args
+
     set_seed(args_original.seed)
 
-    hp_search_dir = os.path.join(experiment_directory, "hp_search")
-    ensure_directory_exists(hp_search_dir)
+    if not os.path.exists(f"{experiment_directory}/hp_search/best_hp_found.json"):
 
-    best_hp_path = os.path.join(hp_search_dir, "best_hp_found.json")
-    optuna_log_path = os.path.join(hp_search_dir, "optuna_logs.log")
-
-    if not os.path.exists(best_hp_path):
         hp_search_args = copy.deepcopy(args_original)
-        hp_search_args.output_dir = hp_search_dir
-        hp_search_args.logging_dir = os.path.join(hp_search_dir, "logs")
+        hp_search_args.output_dir = f"{experiment_directory}/hp_search"
+        hp_search_args.logging_dir = f"{experiment_directory}/hp_search/logs"
         hp_search_args.save_strategy = "no"
 
         cbks = [
@@ -104,28 +114,33 @@ def train_validation_test(
             )
         ] + callbacks
 
-        if not os.path.exists(optuna_log_path):
-            open(optuna_log_path, "w").close()
+        if not os.path.exists(f"{experiment_directory}/hp_search/optuna_logs.log"):
+            open(f"{experiment_directory}/hp_search/optuna_logs.log", "w")
 
         storage = optuna.storages.JournalStorage(
-            optuna.storages.JournalFileStorage(optuna_log_path)
+            optuna.storages.JournalFileStorage(
+                f"{experiment_directory}/hp_search/optuna_logs.log"
+            )
         )
 
         try:
-            study = optuna.load_study(study_name=experiment_name, storage=storage)
-            n_previous_trials = len(study.trials)
-            n_failed_trials = sum(
-                1
-                for trial in study.trials
-                if trial.state
-                in {optuna.trial.TrialState.FAIL, optuna.trial.TrialState.RUNNING}
+            study = optuna.load_study(
+                study_name=f"{experiment_name}",
+                storage=storage,
             )
+            n_previous_trials = len(study.trials)
+            n_failed_trials = 0
+            for trial in study.trials:
+                if trial.state in [
+                    optuna.trial.TrialState.FAIL,
+                    optuna.trial.TrialState.RUNNING,
+                ]:
+                    n_failed_trials += 1
             n_trials = max_trials - (n_previous_trials - n_failed_trials)
         except:
             n_trials = max_trials
 
         if n_trials > 0 and validation_dataset is not None:
-            ensure_directory_exists(os.path.join(hp_search_dir, "info"))
 
             hp_search_trainer = Trainer(
                 model_init=model_init,
@@ -134,7 +149,7 @@ def train_validation_test(
                 args=hp_search_args,
                 compute_metrics=compute_metrics,
                 data_collator=data_collator,
-                callbacks=cbks,
+                callbacks=cbks,  # type: ignore
             )
 
             hp_search_results = hp_search_trainer.hyperparameter_search(
@@ -144,58 +159,148 @@ def train_validation_test(
                 direction=direction,
                 compute_objective=compute_objective,
                 pruner=pruner,
-                study_name=experiment_name,
+                study_name=f"{experiment_name}",
                 storage=storage,
                 load_if_exists=True,
             )
 
-            best_hyperparameters = {
-                "hyperparameters": hp_search_results.hyperparameters,
-                "run_id": hp_search_results.run_id,
-                "objective": hp_search_results.objective,
-            }
-            with open(best_hp_path, "w") as f:
+            best_hyperparameters = {}
+            best_hyperparameters["hyperparameters"] = hp_search_results.hyperparameters  # type: ignore
+            best_hyperparameters["run_id"] = hp_search_results.run_id  # type: ignore
+            best_hyperparameters["objective"] = hp_search_results.objective  # type: ignore
+
+            with open(f"{experiment_directory}/hp_search/best_hp_found.json", "w") as f:
                 json.dump(best_hyperparameters, f, indent=4)
 
-    # Fine-tuning
-    finetuning_dir = os.path.join(experiment_directory, "finetuning")
-    ensure_directory_exists(finetuning_dir)
-    ensure_directory_exists(os.path.join(finetuning_dir, "info"))
+            os.makedirs(
+                f"{experiment_directory}/hp_search/info/",
+                exist_ok=True,
+            )
+            train_dataset_info = {}
+            train_dataset_info["dataset_name"] = train_dataset.info.dataset_name
+            train_dataset_info["samples"] = [sample["id"] for sample in train_dataset]  # type: ignore
+            with open(
+                f"{experiment_directory}/hp_search/info/train_dataset.json", "w"
+            ) as f:
+                json.dump(train_dataset_info, f, indent=4)
 
-    cpu_info = cpuinfo.get_cpu_info()
-    with open(os.path.join(finetuning_dir, "info", "cpu_info.json"), "w") as f:
-        json.dump(cpu_info, f, indent=4)
+            validation_dataset_info = {}
+            validation_dataset_info["dataset_name"] = train_dataset.info.dataset_name
+            validation_dataset_info["samples"] = [
+                sample["id"] for sample in validation_dataset  # type: ignore
+            ]
+            with open(
+                f"{experiment_directory}/hp_search/info/validation_dataset.json",
+                "w",
+            ) as f:
+                json.dump(validation_dataset_info, f, indent=4)
 
-    with open(os.path.join(finetuning_dir, "info", "training_started.txt"), "w") as f:
-        f.write(datetime.datetime.today().strftime("%Y/%m/%d-%H:%M:%S"))
+    # Fine-tuning on best hyper-parameters
+    if not os.path.exists(f"{experiment_directory}/finetuning/finetuning_result.json"):
 
-    if join_validation_on_train_after and validation_dataset is not None:
-        train_dataset = concatenate_datasets([train_dataset, validation_dataset])
+        os.makedirs(
+            f"{experiment_directory}/finetuning/info/",
+            exist_ok=True,
+        )
 
-    args = copy.deepcopy(args_original)
-    args.output_dir = os.path.join(finetuning_dir, "model")
-    args.logging_dir = os.path.join(finetuning_dir, "logs")
+        cpu_info = cpuinfo.get_cpu_info()
+        with open(
+            f"{experiment_directory}/finetuning/info/cpu_info.json", "w"
+        ) as outfile:
+            json.dump(cpu_info, outfile, indent=4)
+        # devices = igpu.devices_index()
+        gpu_info = {
+            # device: convert_to_dict(igpu.get_device(device)) for device in devices
+        }
+        with open(
+            f"{experiment_directory}/finetuning/info/gpu_info.json", "w"
+        ) as outfile:
+            json.dump(gpu_info, outfile, indent=4)
+        with open(
+            f"{experiment_directory}/finetuning/info/training_started.txt", "w"
+        ) as f:
+            f.write(f"{datetime.datetime.today().strftime('%Y/%m/%d-%H:%M:%S')}")
 
-    with open(os.path.join(finetuning_dir, "info", "training_args.json"), "w") as f:
-        json.dump(args.to_dict(), f, indent=4)
+        if join_validation_on_train_after and validation_dataset is not None:
+            train_dataset = concatenate_datasets([train_dataset, validation_dataset])
 
-    trainer = Trainer(
-        model_init=model_init,
-        train_dataset=train_dataset,
-        eval_dataset=test_dataset,
-        args=args,
-        compute_metrics=compute_metrics,
-        data_collator=data_collator,
-        callbacks=callbacks,
-    )
-    trainer.train()
-    finetuning_result = trainer.evaluate()
+        args = copy.deepcopy(args_original)
+        args.output_dir = f"{experiment_directory}/finetuning/model/"
+        args.logging_dir = f"{experiment_directory}/finetuning/logs/"
+        args.logging_first_step = True
+        if validation_dataset is not None:
+            with open(f"{experiment_directory}/hp_search/best_hp_found.json", "r") as f:
+                best_hyperparameters = json.load(f)
+            for hyperparameter in best_hyperparameters["hyperparameters"]:
+                setattr(
+                    args,
+                    hyperparameter,
+                    best_hyperparameters["hyperparameters"][hyperparameter],
+                )
 
-    trainer.save_state()
-    if save_model:
-        trainer.save_model()
-    else:
-        trainer.model.config.to_json_file(os.path.join(args.output_dir, "config.json"))
+        with open(
+            f"{experiment_directory}/finetuning/info/training_args.json", "w"
+        ) as f:
+            json.dump(args.to_dict(), f, indent=4)
 
-    with open(os.path.join(finetuning_dir, "finetuning_result.json"), "w") as f:
-        json.dump(finetuning_result, f, indent=4)
+        cbks = [
+            KinfoextCallback(
+                experiment_name=experiment_name,
+                experiment_directory=experiment_directory,
+                status="Training with best hyper-parameters set found...",
+            )
+        ] + callbacks
+
+        trainer = Trainer(
+            model_init=model_init,
+            train_dataset=train_dataset,
+            eval_dataset=test_dataset,
+            args=args,
+            compute_metrics=compute_metrics,
+            data_collator=data_collator,
+            callbacks=cbks,  # type: ignore
+        )
+
+        trainer.train()
+        finetuning_result = trainer.evaluate()
+        trainer.save_state()
+        if save_model:
+            trainer.save_model()
+        else:
+            trainer.model.config.to_json_file(f"{args.output_dir}/config.json")
+
+        with open(
+            f"{experiment_directory}/finetuning/info/training_finished.txt", "w"
+        ) as f:
+            f.write(f"{datetime.datetime.today().strftime('%Y/%m/%d-%H:%M:%S')}")
+
+        with open(
+            f"{experiment_directory}/finetuning/finetuning_result.json", "w"
+        ) as f:
+            json.dump(finetuning_result, f, indent=4)
+
+        train_dataset_info = {}
+        train_dataset_info["dataset_name"] = train_dataset.info.dataset_name
+        train_dataset_info["samples"] = [sample["id"] for sample in train_dataset]  # type: ignore
+        with open(
+            f"{experiment_directory}/finetuning/info/train_dataset.json", "w"
+        ) as f:
+            json.dump(train_dataset_info, f, indent=4)
+
+        test_dataset_info = {}
+        test_dataset_info["dataset_name"] = test_dataset.info.dataset_name
+        test_dataset_info["samples"] = [sample["id"] for sample in test_dataset]  # type: ignore
+        with open(
+            f"{experiment_directory}/finetuning/info/test_dataset.json",
+            "w",
+        ) as f:
+            json.dump(test_dataset_info, f, indent=4)
+
+    with open(f"{experiment_directory}/finetuning/finetuning_result.json", "r") as f:
+        finetuning_result = json.load(f)
+
+    results = {"metrics": finetuning_result}
+    if validation_dataset is not None:
+        results["best_hp_found"] = best_hyperparameters
+    with open(f"{experiment_directory}/results.json", "w") as f:
+        json.dump(results, f, indent=4)
