@@ -7,9 +7,6 @@ from packaging import version
 from torch import nn
 from torch.utils.data import DataLoader, Dataset
 from transformers import Trainer
-from transformers.file_utils import is_sagemaker_mp_enabled
-from transformers.optimization import Adafactor, AdamW, get_scheduler
-from transformers.trainer_pt_utils import get_parameter_names
 from transformers.trainer_utils import EvalPrediction, PredictionOutput, speed_metrics
 from transformers.utils import logging
 
